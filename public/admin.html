@@ -2,86 +2,70 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>GoSleep Admin Dashboard</title>
+    <title>Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 flex">
-
-    <div class="w-64 h-screen bg-blue-900 text-white p-6 fixed">
-        <h1 class="text-2xl font-bold mb-10">GoSleep Admin</h1>
-        <nav class="space-y-4">
-            <a href="#" class="block p-3 bg-blue-700 rounded-lg">Daftar Booking</a>
-        </nav>
+    <script>if(localStorage.getItem('role') !== 'admin') window.location.href='index.html';</script>
+    <div class="w-64 bg-slate-900 text-white min-h-screen p-6">
+        <h2 class="text-2xl font-bold mb-10">ADMIN</h2>
+        <button onclick="loadSection('bookings')" class="block w-full text-left py-2">Reservasi</button>
+        <button onclick="loadSection('rooms')" class="block w-full text-left py-2">Kamar</button>
+        <button onclick="localStorage.clear();window.location.href='index.html'" class="mt-10 text-red-400">Logout</button>
     </div>
-
-    <main class="ml-64 p-10 w-full">
-        <h2 class="text-3xl font-bold mb-8 text-gray-800">Manajemen Booking Klien</h2>
-
-        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-blue-100">
-            <table class="w-full text-left">
-                <thead class="bg-blue-50">
-                    <tr>
-                        <th class="p-4 border-b">ID</th>
-                        <th class="p-4 border-b">Nama Klien</th>
-                        <th class="p-4 border-b">Tipe Kamar</th>
-                        <th class="p-4 border-b">Status</th>
-                        <th class="p-4 border-b">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="bookingTable">
-                    </tbody>
-            </table>
-        </div>
-    </main>
+    <div class="p-10 w-full" id="mainContent"></div>
 
     <script>
-        async function fetchBookings() {
-            const res = await fetch('/api/admin/bookings');
-            const data = await res.json();
-            const table = document.getElementById('bookingTable');
-            table.innerHTML = '';
-
-            data.forEach(item => {
-                table.innerHTML += `
-            <tr class="hover:bg-gray-50 border-b text-sm">
-                <td class="p-4 text-gray-400">#${item.id.toString().slice(-5)}</td>
-                <td class="p-4">
-                    <div class="font-bold text-gray-800">${item.customerName}</div>
-                    <div class="text-xs text-blue-500 font-medium">${item.phone || '-'}</div>
-                </td>
-                <td class="p-4">${item.roomType}</td>
-                <td class="p-4 font-semibold text-orange-600">${item.checkIn || item.createdAt}</td>
-                <td class="p-4">
-                    <span class="px-3 py-1 rounded-full text-xs ${item.status === 'Confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
-                        ${item.status}
-                    </span>
-                </td>
-                <td class="p-4 space-x-2">
-                    <button onclick="updateStatus(${item.id}, 'Confirmed')" class="text-blue-500 hover:underline font-medium">Confirm</button>
-                    <button onclick="deleteBooking(${item.id})" class="text-red-500 hover:underline font-medium">Delete</button>
-                </td>
-            </tr>
-                `;
-            });
-        }
-
-        async function updateStatus(id, status) {
-            await fetch(`/api/admin/bookings/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status })
-            });
-            fetchBookings();
-        }
-
-        async function deleteBooking(id) {
-            if(confirm('Hapus data booking ini?')) {
-                await fetch(`/api/admin/bookings/${id}`, { method: 'DELETE' });
-                fetchBookings();
+        async function loadSection(sec) {
+            const main = document.getElementById('mainContent');
+            if(sec === 'bookings') {
+                const res = await fetch('/api/admin/bookings');
+                const data = await res.json();
+                main.innerHTML = `<h2 class="text-2xl font-bold mb-4">List Reservasi</h2>` + data.reverse().map(b => `
+                    <div class="bg-white p-4 mb-2 rounded shadow flex justify-between items-center">
+                        <div>
+                            <span class="text-xs font-bold ${b.status==='Accepted'?'text-green-500':'text-orange-500'}">${b.status}</span>
+                            <p class="font-bold">${b.customerName} - ${b.roomType}</p>
+                            <p class="text-xs">${b.adults} Dewasa, ${b.children} Anak | Rp ${b.totalPrice.toLocaleString()}</p>
+                        </div>
+                        <div>
+                            ${b.status==='Pending' ? `<button onclick="acc(${b.id})" class="bg-blue-500 text-white px-3 py-1 rounded text-xs">Accepted</button>` : ''}
+                            <button onclick="delB(${b.id})" class="bg-red-500 text-white px-3 py-1 rounded text-xs ml-1">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                const res = await fetch('/api/rooms');
+                const data = await res.json();
+                main.innerHTML = `<button onclick="addR()" class="bg-green-500 text-white px-4 py-2 mb-4 rounded">Tambah Kamar</button>` + data.map(r => `
+                    <div class="bg-white p-4 mb-2 rounded shadow flex justify-between">
+                        <p>${r.name} - Rp ${r.price.toLocaleString()} (Stok: ${r.stock})</p>
+                        <button onclick="delR('${r.id}')" class="text-red-500">Hapus</button>
+                    </div>
+                `).join('');
             }
         }
 
-        fetchBookings();
+        async function acc(id) {
+            await fetch(`/api/admin/bookings/${id}/accept`, {method:'PATCH'});
+            loadSection('bookings');
+        }
+        async function delB(id) {
+            await fetch(`/api/admin/bookings/${id}`, {method:'DELETE'});
+            loadSection('bookings');
+        }
+        async function addR() {
+            const name = prompt("Nama:"); const price = prompt("Harga:"); const stock = prompt("Stok:");
+            if(name) {
+                await fetch('/api/rooms', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({name, price, stock})
+                });
+                loadSection('rooms');
+            }
+        }
+        window.onload = () => loadSection('bookings');
     </script>
 </body>
 </html>

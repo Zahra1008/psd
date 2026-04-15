@@ -6,54 +6,68 @@ const app = express();
 const PORT = 3000;
 
 app.use(bodyParser.json());
-// Melayani file statis dari folder 'public'
 app.use(express.static(path.join(__dirname, 'public')));
+const dbPath = path.join(__dirname, 'db.json');
 
-// Inisialisasi Database (Jika file db.json belum ada)
-if (!fs.existsSync('db.json')) {
-    fs.writeFileSync('db.json', JSON.stringify({ bookings: [] }, null, 2));
-}
+// Fungsi baca tulis DB yang aman
+const getDb = () => JSON.parse(fs.readFileSync(dbPath, 'utf8'));
+const saveDb = (data) => fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
 
-// Helper Fungsi Baca/Tulis DB
-const getDb = () => JSON.parse(fs.readFileSync('db.json'));
-const saveDb = (data) => fs.writeFileSync('db.json', JSON.stringify(data, null, 2));
-
-// --- API ROUTES ---
-
-app.post('/api/bookings', (req, res) => {
+// --- API AUTH ---
+app.post('/api/register', (req, res) => {
+    const { username, password } = req.body;
     const db = getDb();
-    const newBooking = {
-        id: Date.now(),
-        customerName: req.body.name,
-        phone: req.body.phone,        // Data baru
-        checkIn: req.body.checkIn,    // Data baru
-        roomType: req.body.room,
-        createdAt: new Date().toLocaleDateString(),
-        status: 'Pending'
-    };
-    db.bookings.push(newBooking);
+    if (db.users.find(u => u.username === username)) return res.status(400).json({ success: false, message: "User sudah ada" });
+    db.users.push({ username, password, role: 'user' });
     saveDb(db);
     res.json({ success: true });
 });
 
-// 2. Ambil Semua Booking (Admin)
-app.get('/api/admin/bookings', (req, res) => {
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
     const db = getDb();
-    res.json(db.bookings);
-});
-
-// 3. Update Status (Admin)
-app.put('/api/admin/bookings/:id', (req, res) => {
-    const db = getDb();
-    const index = db.bookings.findIndex(b => b.id == req.params.id);
-    if (index !== -1) {
-        db.bookings[index].status = req.body.status;
-        saveDb(db);
-        res.json({ success: true });
+    const user = db.users.find(u => u.username === username && u.password === password);
+    if (user) {
+        res.json({ success: true, role: user.role, username: user.username });
+    } else {
+        res.status(401).json({ success: false });
     }
 });
 
-// 4. Hapus Booking (Admin)
+// --- API ROOMS ---
+app.get('/api/rooms', (req, res) => res.json(getDb().rooms));
+
+app.post('/api/rooms', (req, res) => {
+    const db = getDb();
+    db.rooms.push({ id: Date.now().toString(), ...req.body, price: parseInt(req.body.price), stock: parseInt(req.body.stock) });
+    saveDb(db);
+    res.json({ success: true });
+});
+
+// --- API BOOKINGS ---
+app.get('/api/admin/bookings', (req, res) => res.json(getDb().bookings));
+
+app.post('/api/bookings', (req, res) => {
+    const db = getDb();
+    db.bookings.push({ id: Date.now(), ...req.body, status: 'Pending' });
+    saveDb(db);
+    res.json({ success: true });
+});
+
+app.patch('/api/admin/bookings/:id/accept', (req, res) => {
+    const db = getDb();
+    const booking = db.bookings.find(b => b.id == req.params.id);
+    if (booking && booking.status === 'Pending') {
+        const room = db.rooms.find(r => r.name === booking.roomType);
+        if (room && room.stock > 0) {
+            room.stock -= 1; // Stok berkurang
+            booking.status = 'Accepted';
+            saveDb(db);
+            res.json({ success: true });
+        } else { res.status(400).json({ message: "Stok habis" }); }
+    }
+});
+
 app.delete('/api/admin/bookings/:id', (req, res) => {
     const db = getDb();
     db.bookings = db.bookings.filter(b => b.id != req.params.id);
@@ -61,10 +75,4 @@ app.delete('/api/admin/bookings/:id', (req, res) => {
     res.json({ success: true });
 });
 
-// MENJALANKAN SERVER
-app.listen(PORT, () => {
-    console.log(`=========================================`);
-    console.log(` Server GoSleep Berhasil Dijalankan! `);
-    console.log(` Buka di: http://localhost:${PORT}/index.html `);
-    console.log(`=========================================`);
-});
+app.listen(PORT, () => console.log(`Server jalan di http://localhost:${PORT}`));

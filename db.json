@@ -1,20 +1,54 @@
 {
-  "bookings": [
+  "rooms": [
     {
-      "id": 1776094279114,
-      "customerName": "Zahra Afifah",
-      "roomType": "Standard Cozy",
-      "date": "13/4/2026",
-      "status": "Confirmed"
+      "id": "101",
+      "name": "Deluxe Room",
+      "price": 500000,
+      "stock": 4
     },
     {
-      "id": 1776165315793,
+      "id": "1776259170054",
+      "name": "Presidential Suite",
+      "price": 87654321,
+      "stock": 9
+    }
+  ],
+  "bookings": [
+    {
+      "id": 1776259105207,
       "customerName": "Citra Aulia",
-      "phone": "084251685",
-      "checkIn": "2026-04-19",
-      "roomType": "Deluxe Warm",
-      "createdAt": "14/4/2026",
-      "status": "Confirmed"
+      "phone": "087765446679",
+      "checkIn": "2026-04-23",
+      "checkOut": "2026-05-07",
+      "roomType": "Deluxe Room",
+      "adults": "3",
+      "children": "0",
+      "totalPrice": 7150000,
+      "status": "Accepted"
+    },
+    {
+      "id": 1776259229601,
+      "customerName": "zahra",
+      "phone": "334455",
+      "checkIn": "2026-05-05",
+      "checkOut": "2026-05-09",
+      "roomType": "Presidential Suite",
+      "adults": "3",
+      "children": "3",
+      "totalPrice": 350827284,
+      "status": "Pending"
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "password": "123",
+      "role": "admin"
+    },
+    {
+      "username": "citra",
+      "password": "1234",
+      "role": "user"
     }
   ]
 }

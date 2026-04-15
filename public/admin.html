@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>GoSleep Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 flex">
+
+    <div class="w-64 h-screen bg-blue-900 text-white p-6 fixed">
+        <h1 class="text-2xl font-bold mb-10">GoSleep Admin</h1>
+        <nav class="space-y-4">
+            <a href="#" class="block p-3 bg-blue-700 rounded-lg">Daftar Booking</a>
+        </nav>
+    </div>
+
+    <main class="ml-64 p-10 w-full">
+        <h2 class="text-3xl font-bold mb-8 text-gray-800">Manajemen Booking Klien</h2>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-blue-100">
+            <table class="w-full text-left">
+                <thead class="bg-blue-50">
+                    <tr>
+                        <th class="p-4 border-b">ID</th>
+                        <th class="p-4 border-b">Nama Klien</th>
+                        <th class="p-4 border-b">Tipe Kamar</th>
+                        <th class="p-4 border-b">Status</th>
+                        <th class="p-4 border-b">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="bookingTable">
+                    </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        async function fetchBookings() {
+            const res = await fetch('/api/admin/bookings');
+            const data = await res.json();
+            const table = document.getElementById('bookingTable');
+            table.innerHTML = '';
+
+            data.forEach(item => {
+                table.innerHTML += `
+            <tr class="hover:bg-gray-50 border-b text-sm">
+                <td class="p-4 text-gray-400">#${item.id.toString().slice(-5)}</td>
+                <td class="p-4">
+                    <div class="font-bold text-gray-800">${item.customerName}</div>
+                    <div class="text-xs text-blue-500 font-medium">${item.phone || '-'}</div>
+                </td>
+                <td class="p-4">${item.roomType}</td>
+                <td class="p-4 font-semibold text-orange-600">${item.checkIn || item.createdAt}</td>
+                <td class="p-4">
+                    <span class="px-3 py-1 rounded-full text-xs ${item.status === 'Confirmed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+                        ${item.status}
+                    </span>
+                </td>
+                <td class="p-4 space-x-2">
+                    <button onclick="updateStatus(${item.id}, 'Confirmed')" class="text-blue-500 hover:underline font-medium">Confirm</button>
+                    <button onclick="deleteBooking(${item.id})" class="text-red-500 hover:underline font-medium">Delete</button>
+                </td>
+            </tr>
+                `;
+            });
+        }
+
+        async function updateStatus(id, status) {
+            await fetch(`/api/admin/bookings/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            fetchBookings();
+        }
+
+        async function deleteBooking(id) {
+            if(confirm('Hapus data booking ini?')) {
+                await fetch(`/api/admin/bookings/${id}`, { method: 'DELETE' });
+                fetchBookings();
+            }
+        }
+
+        fetchBookings();
+    </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - GoSleep</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-blue-50 flex items-center justify-center h-screen">
+
+    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border-t-8 border-blue-400">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-500">Go<span class="text-orange-400">Sleep</span></h1>
+            <p class="text-gray-500">Masuk untuk memesan kamar</p>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Email</label>
+                <input type="email" id="email" required class="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-blue-400 focus:border-blue-400 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" required class="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-blue-400 focus:border-blue-400 outline-none">
+            </div>
+            <button type="submit" class="w-full bg-blue-500 text-white p-3 rounded-lg font-semibold hover:bg-blue-600 transition">Masuk</button>
+        </form>
+        
+        <p class="mt-6 text-center text-sm text-gray-500">
+            Kembali ke <a href="index.html" class="text-blue-500 hover:underline">Beranda</a>
+        </p>
+    </div>
+
+    <script>
+        document.getElementById("loginForm").onsubmit = function(e) {
+            e.preventDefault();
+            // Simulasi login berhasil
+            localStorage.setItem("isLoggedIn", "true");
+            alert("Login Berhasil! Anda sekarang bisa membooking kamar.");
+            window.location.href = "index.html";
+        };
+    </script>
+</body>
+</html>

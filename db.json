@@ -1,0 +1,20 @@
+{
+  "bookings": [
+    {
+      "id": 1776094279114,
+      "customerName": "Zahra Afifah",
+      "roomType": "Standard Cozy",
+      "date": "13/4/2026",
+      "status": "Confirmed"
+    },
+    {
+      "id": 1776165315793,
+      "customerName": "Citra Aulia",
+      "phone": "084251685",
+      "checkIn": "2026-04-19",
+      "roomType": "Deluxe Warm",
+      "createdAt": "14/4/2026",
+      "status": "Confirmed"
+    }
+  ]
+}

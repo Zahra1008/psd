@@ -11,6 +11,12 @@
       "name": "Presidential Suite",
       "price": 87654321,
       "stock": 9
+    },
+    {
+      "id": "1776900648545",
+      "name": "junior suite",
+      "price": 200000,
+      "stock": 14
     }
   ],
   "bookings": [
